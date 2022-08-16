@@ -76,7 +76,7 @@ func (self *Identifier) TokenLiteral() string { return self.Token.Literal }
 func (self *Identifier) String() string { return self.Value }
 
 type ReturnStatement struct {
-	Token token.Token // return token
+	Token 		token.Token // return token
 	ReturnValue Expression
 }
 
@@ -97,8 +97,8 @@ func (self *ReturnStatement) String() string {
 }
 
 type ExpressionStatement struct {
-	Token token.Token // first token of the expression
-	Expression Expression
+	Token 		token.Token // first token of the expression
+	Expression 	Expression
 }
 
 func (self *ExpressionStatement) statementNode() {}
@@ -119,3 +119,22 @@ type IntegerLiteral struct {
 func (self *IntegerLiteral) expressionNode() {}
 func (self *IntegerLiteral) TokenLiteral() string { return self.Token.Literal }
 func (self *IntegerLiteral) String() string { return self.Token.Literal }
+
+type PrefixExpression struct {
+	Token 		token.Token
+	Operator 	string
+	Right 		Expression
+}
+
+func (self *PrefixExpression) expressionNode() {}
+func (self *PrefixExpression) TokenLiteral() string { return self.Token.Literal }
+func (self *PrefixExpression) String() string {
+	var out bytes.Buffer
+
+	out.WriteString("(")
+	out.WriteString(self.Operator)
+	out.WriteString(self.Right.String())
+	out.WriteString(")")
+
+	return out.String()
+}
