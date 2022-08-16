@@ -6,7 +6,7 @@ import (
 	"bear/token"
 )
 
-func TestNextToken(self *testing.T) {
+func TestNextToken(t *testing.T) {
 	input := `=+(){},;`
 
 	tests := []struct {
@@ -26,22 +26,22 @@ func TestNextToken(self *testing.T) {
 
 	l := New(input)
 
-	for i, tt := range tests {
+	for i, test := range tests {
 		tok := l.NextToken()
 
-		if tok.Type != tt.expectedType {
-			self.Fatalf("tests[%d] - tokentype wrong. expected=%q, got=%q",
-			 i, tt.expectedType, tok.Type)
+		if tok.Type != test.expectedType {
+			t.Fatalf("tests[%d] - tokentype wrong. expected=%q, got=%q",
+			 i, test.expectedType, tok.Type)
 		}
 
-		if tok.Literal != tt.expectedLiteral {
-			self.Fatalf("tests[%d] - literal wrong. expected=%q, got=%q",
-			 i, tt.expectedLiteral, tok.Literal)
+		if tok.Literal != test.expectedLiteral {
+			t.Fatalf("tests[%d] - literal wrong. expected=%q, got=%q",
+			 i, test.expectedLiteral, tok.Literal)
 		}
 	}
 }
 
-func TestFunctionalToken(self *testing.T) {
+func TestFunctionalToken(t *testing.T) {
 	input := `let five = 5;
 	let ten = 10;
 
@@ -145,17 +145,17 @@ func TestFunctionalToken(self *testing.T) {
 
 	l := New(input)
 
-	for i, tt := range tests {
+	for i, test := range tests {
 		tok := l.NextToken()
 
-		if tok.Type != tt.expectedType {
-			self.Fatalf("tests[%d] - tokentype wrong. expected=%q, got=%q",
-			 i, tt.expectedType, tok.Type)
+		if tok.Type != test.expectedType {
+			t.Fatalf("tests[%d] - tokentype wrong. expected=%q, got=%q",
+			 i, test.expectedType, tok.Type)
 		}
 
-		if tok.Literal != tt.expectedLiteral {
-			self.Fatalf("tests[%d] - literal wrong. expected=%q, got=%q",
-			 i, tt.expectedLiteral, tok.Literal)
+		if tok.Literal != test.expectedLiteral {
+			t.Fatalf("tests[%d] - literal wrong. expected=%q, got=%q",
+			 i, test.expectedLiteral, tok.Literal)
 		}
 	}
 }
