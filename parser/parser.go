@@ -7,11 +7,30 @@ import (
 	"fmt"
 )
 
+const (
+	_ int = iota
+	LOWEST
+	EQUALS			// ==
+	LESSGREATER		// > or <
+	SUM 			// +
+	PRODUCT 		// *
+	PREFIX 			// -X or !X
+	CALL 			// myFunction(X)
+)
+
+type (
+	prefixParseFn func() ast.Expression
+	infixParseFn func(ast.Expression) ast.Expression
+)
+
 type Parser struct {
-	lex 		*lexer.Lexer
-	errors 		[]string
-	curToken 	token.Token
-	peekToken 	token.Token
+	lex 			*lexer.Lexer
+	errors 			[]string
+	curToken 		token.Token
+	peekToken 		token.Token
+
+	prefixParseFns 	map[token.TokenType]prefixParseFn
+	infixParseFns	map[token.TokenType]infixParseFn
 }
 
 func New(self *lexer.Lexer) *Parser {
@@ -20,6 +39,9 @@ func New(self *lexer.Lexer) *Parser {
 	p.nextToken()
 
 	p.nextToken()
+
+	p.prefixParseFns = make(map[token.TokenType]prefixParseFn)
+	p.registerPrefix(token.IDENT, p.parseIdentifier)
 
 	return p
 }
@@ -55,7 +77,7 @@ func (self *Parser) parseStatement() ast.Statement {
 	case token.RETURN:
 		return self.parseReturnStatement()
 	default:
-		return nil
+		return self.parseExpressionStatement()
 	}
 }
 
@@ -87,6 +109,16 @@ func (self *Parser) parseReturnStatement() *ast.ReturnStatement {
 	return stmt
 }
 
+func (self *Parser) parseExpressionStatement() *ast.ExpressionStatement {
+	stmt := &ast.ExpressionStatement{Token: self.curToken}
+
+	stmt.Expression = self.parseExpression(LOWEST)
+
+	if self.peekTokenIs(token.SEMICOLON) { self.nextToken() }
+
+	return stmt
+}
+
 func (self *Parser) curTokenIs(tt token.TokenType) bool {
 	return self.curToken.Type == tt
 }
@@ -108,4 +140,23 @@ func (self *Parser) expectPeek(tt token.TokenType) bool {
 func (self *Parser) peekError(tt token.TokenType) {
 	msg := fmt.Sprintf("expected next token to be %s, got %s instead", tt, self.peekToken.Type)
 	self.errors = append(self.errors, msg)
+}
+
+func (self *Parser) registerPrefix(tokenType token.TokenType, fn prefixParseFn) {
+	self.prefixParseFns[tokenType] = fn
+}
+
+func (self *Parser) registerInfix(tokenType token.TokenType, fn infixParseFn) {
+	self.infixParseFns[tokenType] = fn
+}
+
+func (self *Parser) parseExpression(precedence int) ast.Expression {
+	prefix := self.prefixParseFns[self.curToken.Type]
+	if prefix == nil { return nil }
+	leftExp := prefix()
+	return leftExp
+}
+
+func (self *Parser) parseIdentifier() ast.Expression {
+	return &ast.Identifier{Token: self.curToken, Value: self.curToken.Literal}
 }
