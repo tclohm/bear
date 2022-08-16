@@ -5,6 +5,7 @@ import (
 	"bear/lexer"
 	"bear/token"
 	"fmt"
+	"strconv"
 )
 
 const (
@@ -42,6 +43,7 @@ func New(self *lexer.Lexer) *Parser {
 
 	p.prefixParseFns = make(map[token.TokenType]prefixParseFn)
 	p.registerPrefix(token.IDENT, p.parseIdentifier)
+	p.registerPrefix(token.INT, p.parseIntegerLiteral)
 
 	return p
 }
@@ -159,4 +161,19 @@ func (self *Parser) parseExpression(precedence int) ast.Expression {
 
 func (self *Parser) parseIdentifier() ast.Expression {
 	return &ast.Identifier{Token: self.curToken, Value: self.curToken.Literal}
+}
+
+func (self *Parser) parseIntegerLiteral() ast.Expression {
+	lit := &ast.IntegerLiteral{Token: self.curToken}
+
+	value, err := strconv.ParseInt(self.curToken.Literal, 0, 64)
+	if err != nil {
+		msg := fmt.Sprintf("could not parse %q as integer", self.curToken.Literal)
+		self.errors = append(self.errors, msg)
+		return nil
+	}
+
+	lit.Value = value
+
+	return lit
 }
