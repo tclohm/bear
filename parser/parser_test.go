@@ -130,7 +130,7 @@ func TestIntegerLiteralExpression(t *testing.T) {
 	}
 }
 
-func TextParsingPrefixExpressions(t *testing.T) {
+func TestParsingPrefixExpressions(t *testing.T) {
 	prefixTests := []struct{
 		input			string
 		operator 		string
@@ -163,6 +163,58 @@ func TextParsingPrefixExpressions(t *testing.T) {
 			t.Fatalf("exp.Operator is not '%s'. got=%s", test.operator, exp.Operator)
 		}
 		if !testIntegerLiteral(t, exp.Right, test.integerValue) {
+			return
+		}
+	}
+}
+
+func TestParsingInfixExpressions(t *testing.T) {
+	infixTests := []struct{
+		input		string
+		leftValue 	int64
+		operator 	string
+		rightValue 	int64
+	}{
+		{"5 + 5;", 5, "+", 5},
+        {"5 - 5;", 5, "-", 5},
+		{"5 * 5;", 5, "*", 5},
+		{"5 / 5;", 5, "/", 5},
+		{"5 > 5;", 5, ">", 5},
+		{"5 < 5;", 5, "<", 5},
+		{"5 == 5;", 5, "==", 5},
+		{"5 != 5;", 5, "!=", 5},
+	}
+
+	for _, test := range infixTests {
+		lex := lexer.New(test.input)
+		parser := New(lex)
+		program := parser.ParseProgram()
+
+		checkParserErrors(t, parser)
+
+		if len(program.Statements) != 1 {
+			t.Fatalf("program.Statements does not contain %d statements. got=%d\n", 1, len(program.Statements))
+		}
+
+		stmt, ok := program.Statements[0].(*ast.ExpressionStatement)
+		if !ok {
+			t.Fatalf("program.Statements[0] is not *ast.ExpressionStatement. got=%T", program.Statements[0])
+		}
+
+		expression, ok := stmt.Expression.(*ast.InfixExpression)
+		if !ok {
+			t.Fatalf("expression is not ast.InfixExpression. got=%T", stmt.Expression)
+		}
+
+		if !testIntegerLiteral(t, expression.Left, test.leftValue) {
+			return
+		}
+
+		if expression.Operator != test.operator {
+			t.Fatalf("expression.Operator is not '%s'. got=%s", test.operator, expression.Operator)
+		}
+
+		if !testIntegerLiteral(t, expression.Right, test.rightValue) {
 			return
 		}
 	}
