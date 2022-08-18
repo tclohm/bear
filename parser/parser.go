@@ -241,7 +241,7 @@ func (self *Parser) peekPrecedence() int {
 }
 
 func (self *Parser) curPrecedence() int {
-	if current, ok := precedences[self.peekToken.Type]; ok {
+	if current, ok := precedences[self.curToken.Type]; ok {
 		return current
 	}
 	return LOWEST
