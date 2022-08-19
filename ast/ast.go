@@ -159,3 +159,12 @@ func (self *InfixExpression) String() string {
 
 	return out.String()
 }
+
+type Boolean struct {
+	Token token.Token
+	Value bool
+}
+
+func (self *Boolean) expressionNode() {}
+func (self *Boolean) TokenLiteral() string { return self.Token.Literal }
+func (self *Boolean) String() string { return self.Token.Literal }

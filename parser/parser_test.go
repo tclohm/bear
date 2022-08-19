@@ -288,6 +288,36 @@ func TestOperatorPrecedenceParsing(t *testing.T) {
 	}
 }
 
+func TestBooleanExpression(t *testing.T) {
+	input := "true;"
+
+	lex := lexer.New(input)
+	parser := New(lex)
+
+	program := parser.ParseProgram()
+	checkParserErrors(t, parser)
+
+	if len(program.Statements) != 1 {
+		t.Fatalf("program has not enough statements. got=%d", len(program.Statements))
+	}
+
+	stmt, ok := program.Statements[0].(*ast.ExpressionStatement)
+	if !ok {
+		t.Fatalf("program.Statements[0] is not ast.ExpressionStatement. got=%T", program.Statements[0])
+	}
+
+	ident, ok := stmt.Expression.(*ast.Boolean)
+	if !ok {
+		t.Fatalf("expression not *ast.Boolean. got=%T", stmt.Expression)
+	}
+	if ident.Value != true {
+		t.Errorf("ident.Value not %s. got=%v", "true", ident.Value)
+	}
+	if ident.TokenLiteral() != "true" {
+		t.Errorf("ident.TokenLiteral not %s. got=%s", "true", ident.TokenLiteral())
+	}
+}
+
 func testLetStatement(t *testing.T, statement ast.Statement, name string) bool {
 	if statement.TokenLiteral() != "let" {
 		t.Errorf("statement.TokenLiteral not 'let'. got=%q", statement.TokenLiteral())
@@ -346,7 +376,7 @@ func checkParserErrors(t *testing.T, p *Parser) {
 func testIdentifier(t *testing.T, expression ast.Expression, value string) bool {
 	identifier, ok := expression.(*ast.Identifier)
 	if !ok {
-		t.Errorf("expression not *ast.Identifier. got=%T", exp)
+		t.Errorf("expression not *ast.Identifier. got=%T", expression)
 		return false
 	}
 
@@ -376,7 +406,7 @@ func testLiteralExpression(t *testing.T, expression ast.Expression, expected int
 	return false
 }
 
-func testInfixExpression(t *testing.T. expression ast.Expression, left interface{}, operator string, right interface{}) bool {
+func testInfixExpression(t *testing.T, expression ast.Expression, left interface{}, operator string, right interface{}) bool {
 	operatorExpression, ok := expression.(*ast.InfixExpression)
 	if !ok {
 		t.Errorf("expression is not ast.InfixExpression. got=%T(%s)", expression, expression)
