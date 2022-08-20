@@ -138,6 +138,8 @@ func TestParsingPrefixExpressions(t *testing.T) {
 	}{
 		{"!5;", "!", 5},
 		{"-15;", "-", 15},
+		//{"!true;", "!", true},
+		//{"!false;", "!", false},
 	}
 
 	for _, test := range prefixTests {
@@ -183,6 +185,9 @@ func TestParsingInfixExpressions(t *testing.T) {
 		{"5 < 5;", 5, "<", 5},
 		{"5 == 5;", 5, "==", 5},
 		{"5 != 5;", 5, "!=", 5},
+		// {true == "true", true, "==", true},
+		// {"true != false", true, "!=", false},
+		// {"false == false", false, "==", false},
 	}
 
 	for _, test := range infixTests {
@@ -217,6 +222,8 @@ func TestParsingInfixExpressions(t *testing.T) {
 		if !testIntegerLiteral(t, expression.Right, test.rightValue) {
 			return
 		}
+
+		if !testInfixExpression(t, stmt.Expression, test.leftValue, test.operator, test.rightValue) { return }
 	}
 }
 
