@@ -446,6 +446,36 @@ func TestFunctionLiteralParsing(t *testing.T) {
 	testInfixExpression(t, bodyStmt.Expression, "x", "+", "y")
 }
 
+func TestFunctionParameterParsing(t *testing.T) {
+	tests := []struct{
+		input 			string
+		expectedParams 	[]string
+	}{
+		{input: "fn() {};", expectedParams: []string{}},
+		{input: "fn(x) {};", expectedParams: []string{"x"}},
+		{input: "fn(x, y, z) {};", expectedParams: []string{"x", "y", "z"}},
+	}
+
+	for _, test := range tests {
+		lex := lexer.New(test.input)
+		parser := New(lex)
+
+		program := parser.ParseProgram()
+		checkParserErrors(t, parser)
+
+		stmt := program.Statements[0].(*ast.ExpressionStatement)
+		function := stmt.Expression.(*ast.FunctionLiteral)
+
+		if len(function.Parameters) != len(test.expectedParams) {
+			t.Errorf("length parameters wrong. want %d, got=%d\n", len(test.expectedParams), len(function.Parameters))
+		}
+
+		for i, identifier := range test.expectedParams {
+			testLiteralExpression(t, function.Parameters[i], identifier)
+		}
+	}
+}
+
 func testLetStatement(t *testing.T, statement ast.Statement, name string) bool {
 	if statement.TokenLiteral() != "let" {
 		t.Errorf("statement.TokenLiteral not 'let'. got=%q", statement.TokenLiteral())
