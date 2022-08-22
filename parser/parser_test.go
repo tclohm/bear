@@ -41,6 +41,35 @@ let foobar = 123905;
 	}
 }
 
+func TestLetStatements(t *testing.T) {
+	tests := []struct{
+		input 				string
+		expectedIdentifier 	string
+		expectedValue 		interface{}
+	}{
+		{"let x = 5;", "x", 5},
+		{"let y = true;", "y", true},
+		{"let foobar = y", "foobar", "y"},
+	}
+
+	for _, test := range tests {
+		lex := lexer.New(test.input)
+		parser := New(lex)
+		program := parser.ParseProgram()
+		checkParserErrors(t, parser)
+
+		if len(program.Statements) != 1 {
+			t.Fatalf("program.Statements does not contain 1 statements. got=%d", len(program.Statements))
+		}
+
+		stmt := program.Statements[0]
+		if !testLetStatement(t, stmt, test.expectedIdentifier) { return }
+
+		val := stmt.(*ast.LetStatement).Value
+		if !testLiteralExpression(t, val, test.expectedValue) { return }
+	}
+}
+
 func TestReturnStatements(t *testing.T) {
 	input := `
 return 5;

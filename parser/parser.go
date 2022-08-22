@@ -123,8 +123,11 @@ func (self *Parser) parseLetStatement() *ast.LetStatement {
 
 	if !self.expectPeek(token.ASSIGN) { return nil }
 
-	// TODO -- skipping the expression until we encounter semicolon
-	for !self.curTokenIs(token.SEMICOLON) { self.nextToken() }
+	self.nextToken()
+
+	stmt.Value = self.parseExpression(LOWEST)
+
+	if self.peekTokenIs(token.SEMICOLON) { self.nextToken() }
 
 	return stmt
 }
@@ -134,8 +137,9 @@ func (self *Parser) parseReturnStatement() *ast.ReturnStatement {
 	
 	self.nextToken()
 
-	// TODO: -- sking the expressions until we encounter semicolon
-	for !self.curTokenIs(token.SEMICOLON) { self.nextToken() }
+	stmt.ReturnValue = self.parseExpression(LOWEST)
+
+	if self.peekTokenIs(token.SEMICOLON) { self.nextToken() }
 
 	return stmt
 }
