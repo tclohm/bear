@@ -378,7 +378,7 @@ func TestIfExpression(t *testing.T) {
 		t.Fatalf("program.Statements[0] is not ast.ExpressionStatement. got=%T", program.Statements[0])
 	}
 
-	expression ok := stmt.Expression.(*ast.IfExpression)
+	expression, ok := stmt.Expression.(*ast.IfExpression)
 	if !ok {
 		t.Fatalf("stmt.Expression is not ast.IfExpression. got=%T", stmt.Expression)
 	}
