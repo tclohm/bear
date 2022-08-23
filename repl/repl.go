@@ -6,13 +6,16 @@ import (
 	"io"
 	"bear/lexer"
 	"bear/parser"
+	"bear/evaluator"
 )
+
+const PROMPT = ">> "
 
 func Start(in io.Reader, out io.Writer) {
 	scanner := bufio.NewScanner(in)
 
 	for {
-		fmt.Fprintf(out, ">> ")
+		fmt.Fprintf(out, PROMPT)
 		scanned := scanner.Scan()
 		if !scanned {
 			return
@@ -28,8 +31,11 @@ func Start(in io.Reader, out io.Writer) {
 			continue
 		}
 
-		io.WriteString(out, program.String())
-		io.WriteString(out, "\n")
+		evaluated := evaluator.Eval(program)
+		if evaluated != nil {
+			io.WriteString(out, evaluated.Inspect())
+			io.WriteString(out, "\n")
+		}
 	}
 }
 
@@ -39,9 +45,10 @@ const ERROR_FACE = `
 
 func printParserErrors(out io.Writer, errors []string) {
 	io.WriteString(out, ERROR_FACE)
-	io.WriteString(out, "Whoop! An error occurred")
+	io.WriteString(out, "Whoops! An error occurred")
 	io.WriteString(out, " parser errors:\n")
 	for _, msg := range errors {
-		io.WriteString(out, "\t"+msg+"\n")
+		io.WriteString(out, "ℹ️  ")
+		io.WriteString(out, msg+"\n\n")
 	}
 }
