@@ -596,6 +596,25 @@ func testIntegerLiteral(t *testing.T, expression ast.Expression, value int64) bo
 	return true
 }
 
+func TestStringLiteralExpression(t *testing.T) {
+	input := `"hello world";`
+
+	lex := lexer.New(input)
+	parser := New(lex)
+	program := parser.ParseProgram()
+	checkParserErrors(t, parser)
+
+	stmt := program.Statements[0].(*ast.ExpressionStatement)
+	literal, ok := stmt.Expression.(*ast.StringLiteral)
+	if !ok {
+		t.Fatalf("expression not *ast.StringLiteral. got=%T", stmt.Expression)
+	}
+
+	if literal.Value != "hello world" {
+		t.Errorf("literal.Value not %q. got=%q", "hello world", literal.Value)
+	}
+}
+
 func checkParserErrors(t *testing.T, p *Parser) {
 	errors := p.Errors()
 	if len(errors) == 0 { return }

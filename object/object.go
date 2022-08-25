@@ -14,6 +14,7 @@ const (
 	RETURN_VALUE_OBJ 	= "RETURN_VALUE"
 	ERROR_OBJ 			= "ERROR"
 	FUNCTION_OBJ 		= "FUNCTION"
+	STRING_OBJ 			= "STRING"
 )
 
 type ObjectType string
@@ -83,3 +84,10 @@ func (self *Function) Inspect() string {
 
 	return out.String()
 }
+
+type String struct {
+	Value string
+}
+
+func (self *String) Type() ObjectType { return STRING_OBJ }
+func (self *String) Inspect() string { return self.Value }

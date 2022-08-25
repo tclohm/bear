@@ -63,6 +63,7 @@ func New(self *lexer.Lexer) *Parser {
 	p.registerPrefix(token.LPAREN, p.parseGroupedExpression)
 	p.registerPrefix(token.IF, p.parseIfExpression)
 	p.registerPrefix(token.FUNCTION, p.parseFunctionLiteral)
+	p.registerPrefix(token.STRING, p.parseStringLiteral)
 	p.infixParseFns = make(map[token.TokenType]infixParseFn)
 	p.registerInfix(token.LPAREN, p.parseCallExpression)
 	p.registerInfix(token.PLUS, p.parseInfixExpression) 
@@ -395,4 +396,8 @@ func (self *Parser) parseCallArguments() []ast.Expression {
 	if !self.expectPeek(token.RPAREN) { return nil }
 
 	return args
+}
+
+func (self *Parser) parseStringLiteral() ast.Expression {
+	return &ast.StringLiteral{Token: self.curToken, Value: self.curToken.Literal}
 }
