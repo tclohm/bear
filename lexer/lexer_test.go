@@ -6,6 +6,7 @@ import (
 	"bear/token"
 )
 
+// MARK: -- Tests
 func TestNextToken(t *testing.T) {
 	input := `=+(){},;`
 
@@ -106,7 +107,7 @@ func TestFunctionalToken(t *testing.T) {
 		{token.BANG, 		"!"},
 		{token.MINUS, 		"-"},
 		{token.SLASH, 		"/"},
-		{token.ASTERICK, 	"*"},
+		{token.ASTERISK, 	"*"},
 		{token.INT, 		"5"},
 		{token.SEMICOLON, 	";"},
 		{token.INT, 		"5"},
@@ -141,6 +142,37 @@ func TestFunctionalToken(t *testing.T) {
 		{token.INT, 		"9"},
 		{token.SEMICOLON, 	";"},
 		{token.EOF, 		""},
+	}
+
+	l := New(input)
+
+	for i, test := range tests {
+		tok := l.NextToken()
+
+		if tok.Type != test.expectedType {
+			t.Fatalf("tests[%d] - tokentype wrong. expected=%q, got=%q",
+			 i, test.expectedType, tok.Type)
+		}
+
+		if tok.Literal != test.expectedLiteral {
+			t.Fatalf("tests[%d] - literal wrong. expected=%q, got=%q",
+			 i, test.expectedLiteral, tok.Literal)
+		}
+	}
+}
+
+func TestMoreToken(t *testing.T) {
+	input := `"foobar"
+	"foo bar"
+	`
+
+	tests := []struct{
+		expectedType token.TokenType
+		expectedLiteral string
+	}{
+		{token.STRING, "foobar"},
+		{token.STRING, "foo bar"},
+		{token.EOF, ""},
 	}
 
 	l := New(input)
