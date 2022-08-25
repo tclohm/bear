@@ -71,7 +71,7 @@ func (self *Function) Inspect() string {
 	params := []string{}
 
 	for _, p := range self.Parameters {
-		params = append(params, self.String())
+		params = append(params, p.String())
 	}
 
 	out.WriteString("fn")
