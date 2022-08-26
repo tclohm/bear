@@ -270,14 +270,16 @@ func evalExpressions(expressions []ast.Expression, env *object.Environment) []ob
 }
 
 func applyFunction(fn object.Object, args []object.Object) object.Object {
-	function, ok := fn.(*object.Function)
-	if !ok {
-		return newError("not a function: %s", fn.Type())
+	switch fn := fn.(type) {
+	case *object.Function:
+		extended := extendFunctionEnv(fn, args)
+		evaluated := Eval(fn.Body, extended)
+		return unwrapReturnValue(evaluated)
+	case *object.Builtin:
+		return fn.Fn(args...)
+	default:
+		return newError("not a function: %s", fn.Type()) 
 	}
-
-	extended := extendFunctionEnv(function, args)
-	evaluated := Eval(function.Body, extended)
-	return unwrapReturnValue(evaluated)
 }
 
 func extendFunctionEnv(fn *object.Function, args []object.Object) *object.Environment {
