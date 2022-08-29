@@ -1,6 +1,9 @@
 package evaluator
 
-import "bear/object"
+import (
+	"bear/object"
+	"fmt"
+)
 
 var builtins = map[string]*object.Builtin{
 	"len": &object.Builtin{
