@@ -1,6 +1,7 @@
 package vm
 
 import (
+	"fmt"
 	"bear/code"
 	"bear/compiler"
 	"bear/object"
@@ -42,8 +43,23 @@ func (self *VM) Run() error {
 			constIndex := code.ReadUint16(self.instructions[ip+1:])
 			// MARK: - ip point to opcode instead of an operand
 			ip += 2
+			err := self.push(self.constants[constIndex])
+			if err != nil {
+				return err
+			}
 		}
 	}
+
+	return nil
+}
+
+func (this *VM) push(o object.Object) error {
+	if this.sp >= StackSize {
+		return fmt.Errorf("stack overflow")
+	}
+
+	this.stack[this.sp] = o
+	this.sp++
 
 	return nil
 }

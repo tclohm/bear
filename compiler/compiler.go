@@ -1,6 +1,7 @@
 package compiler
 
 import (
+	"fmt"
 	"bear/ast"
 	"bear/code"
 	"bear/object"
@@ -41,6 +42,13 @@ func (this *Compiler) Compile(node ast.Node) error {
 		err = this.Compile(node.Right)
 		if err != nil {
 			return err
+		}
+
+		switch node.Operator {
+		case "+":
+			this.emit(code.OpAdd)
+		default:
+			return fmt.Errorf("unknown operator %s", node.Operator)
 		}
 	case *ast.IntegerLiteral:
 		integer := &object.Integer{Value: node.Value}
