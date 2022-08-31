@@ -47,6 +47,14 @@ func (self *VM) Run() error {
 			if err != nil {
 				return err
 			}
+		case code.OpAdd:
+			right := self.pop()
+			left := self.pop()
+			leftValue := left.(*object.Integer).Value
+			rightValue := right.(*object.Integer).Value
+
+			result := leftValue + rightValue
+			self.push(&object.Integer{Value: result})
 		}
 	}
 
@@ -62,4 +70,10 @@ func (this *VM) push(o object.Object) error {
 	this.sp++
 
 	return nil
+}
+
+func (this *VM) pop() object.Object {
+	o := this.stack[this.sp - 1]
+	this.sp--
+	return o
 }
