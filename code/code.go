@@ -19,12 +19,18 @@ const (
 	OpConstant Opcode = iota // 0
 	OpAdd // 1
 	OpPop // 2
+	OpSub
+	OpMul
+	OpDiv
 )
 
 var definitions = map[Opcode]*Definition{
 	OpConstant: {Name: "OpConstant", OperandWidths: []int{2}},
 	OpAdd: 		{Name: "OpAdd", 	 OperandWidths: []int{}},
 	OpPop: 		{Name: "OpPop", 	 OperandWidths: []int{}},
+	OpSub: 		{Name: "OpSub", 	 OperandWidths: []int{}},
+	OpMul: 		{Name: "OpMul", 	 OperandWidths: []int{}},
+	OpDiv: 		{Name: "OpDiv", 	 OperandWidths: []int{}},
 }
 
 func Lookup(op byte) (*Definition, error) {
