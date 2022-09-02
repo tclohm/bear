@@ -47,14 +47,11 @@ func (self *VM) Run() error {
 			if err != nil {
 				return err
 			}
-		case code.OpAdd:
-			right := self.pop()
-			left := self.pop()
-			leftValue := left.(*object.Integer).Value
-			rightValue := right.(*object.Integer).Value
-
-			result := leftValue + rightValue
-			self.push(&object.Integer{Value: result})
+		case code.OpAdd, code.OpSub, code.OpMul, code.OpDiv:
+			err := self.executeBinaryOperation(op)
+			if err != nil {
+				return err
+			}
 		case code.OpPop:
 			self.pop()
 		}
@@ -63,23 +60,59 @@ func (self *VM) Run() error {
 	return nil
 }
 
-func (this *VM) push(o object.Object) error {
-	if this.sp >= StackSize {
+func (self *VM) push(o object.Object) error {
+	if self.sp >= StackSize {
 		return fmt.Errorf("stack overflow")
 	}
 
-	this.stack[this.sp] = o
-	this.sp++
+	self.stack[self.sp] = o
+	self.sp++
 
 	return nil
 }
 
-func (this *VM) pop() object.Object {
-	o := this.stack[this.sp - 1]
-	this.sp--
+func (self *VM) pop() object.Object {
+	o := self.stack[self.sp - 1]
+	self.sp--
 	return o
 }
 
-func (this *VM) LastPoppedStackElem() object.Object {
-	return this.stack[this.sp]
+func (self *VM) LastPoppedStackElem() object.Object {
+	return self.stack[self.sp]
+}
+
+func (self *VM) executeBinaryOperation(op code.Opcode) error {
+	right := self.pop()
+	left := self.pop()
+
+	leftType := left.Type()
+	rightType := right.Type()
+
+	if leftType == object.INTEGER_OBJ && rightType == object.INTEGER_OBJ {
+		return self.executeBinaryIntegerOperation(op, left, right)
+	}
+	
+	return fmt.Errorf("unsupported types for binary operation: %s %s", leftType, rightType)
+}
+
+func (self *VM) executeBinaryIntegerOperation(op code.Opcode, left, right object.Object) error {
+	leftValue := left.(*object.Integer).Value
+	rightValue := right.(*object.Integer).Value
+
+	var result int64
+
+	switch op {
+	case code.OpAdd:
+		result = leftValue + rightValue
+	case code.OpSub:
+		result = leftValue - rightValue
+	case code.OpMul:
+		result = leftValue * rightValue
+	case code.OpDiv:
+		result = leftValue / rightValue
+	default:
+		return fmt.Errorf("unknown integer operator: %d", op)
+	}
+
+	return self.push(&object.Integer{Value: result})
 }
