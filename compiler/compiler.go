@@ -33,6 +33,7 @@ func (this *Compiler) Compile(node ast.Node) error {
 		if err != nil {
 			return err
 		}
+		this.emit(code.OpPop)
 	case *ast.InfixExpression:
 		err := this.Compile(node.Left)
 		if err != nil {
