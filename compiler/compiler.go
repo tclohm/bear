@@ -60,6 +60,12 @@ func (this *Compiler) Compile(node ast.Node) error {
 	case *ast.IntegerLiteral:
 		integer := &object.Integer{Value: node.Value}
 		this.emit(code.OpConstant, this.addConstant(integer))
+	case *ast.Boolean:
+		if node.Value {
+			this.emit(code.OpTrue)
+		} else {
+			this.emit(code.OpFalse)
+		}
 	}
 
 	return nil
