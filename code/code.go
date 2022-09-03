@@ -24,17 +24,23 @@ const (
 	OpDiv
 	OpTrue
 	OpFalse
+	OpEqual
+	OpNotEqual
+	OpGreaterThan
 )
 
 var definitions = map[Opcode]*Definition{
-	OpConstant: {Name: "OpConstant", OperandWidths: []int{2}},
-	OpAdd: 		{Name: "OpAdd", 	 OperandWidths: []int{}},
-	OpPop: 		{Name: "OpPop", 	 OperandWidths: []int{}},
-	OpSub: 		{Name: "OpSub", 	 OperandWidths: []int{}},
-	OpMul: 		{Name: "OpMul", 	 OperandWidths: []int{}},
-	OpDiv: 		{Name: "OpDiv", 	 OperandWidths: []int{}},
-	OpTrue: 	{Name: "OpTrue", 	 OperandWidths: []int{}},
-	OpFalse: 	{Name: "OpFalse", 	 OperandWidths: []int{}},
+	OpConstant:    {Name: "OpConstant", 	OperandWidths: []int{2}},
+	OpAdd: 		   {Name: "OpAdd", 	 		OperandWidths: []int{}},
+	OpPop: 		   {Name: "OpPop", 	 		OperandWidths: []int{}},
+	OpSub: 		   {Name: "OpSub", 	 		OperandWidths: []int{}},
+	OpMul: 		   {Name: "OpMul", 	 		OperandWidths: []int{}},
+	OpDiv: 		   {Name: "OpDiv", 	 		OperandWidths: []int{}},
+	OpTrue: 	   {Name: "OpTrue", 	 	OperandWidths: []int{}},
+	OpFalse: 	   {Name: "OpFalse", 	 	OperandWidths: []int{}},
+	OpEqual: 	   {Name: "OpEqual", 	 	OperandWidths: []int{}},
+	OpNotEqual:    {Name: "OpNotEqual", 	OperandWidths: []int{}},
+	OpGreaterThan: {Name: "OpGreaterThan", 	OperandWidths: []int{}},
 }
 
 func Lookup(op byte) (*Definition, error) {
