@@ -19,82 +19,96 @@ func New() *Compiler {
 	}
 }
 
-func (this *Compiler) Compile(node ast.Node) error {
+func (self *Compiler) Compile(node ast.Node) error {
 	switch node := node.(type) {
 	case *ast.Program:
 		for _, s := range node.Statements {
-			err := this.Compile(s)
+			err := self.Compile(s)
 			if err != nil {
 				return err
 			}
 		}
 	case *ast.ExpressionStatement:
-		err := this.Compile(node.Expression)
+		err := self.Compile(node.Expression)
 		if err != nil {
 			return err
 		}
-		this.emit(code.OpPop)
+		self.emit(code.OpPop)
 	case *ast.InfixExpression:
 		if node.Operator == "<" {
-			err := this.Compile(node.Right)
+			err := self.Compile(node.Right)
 			if err != nil {
 				return err
 			}
 
-			err = this.Compile(node.Left)
+			err = self.Compile(node.Left)
 			if err != nil {
 				return err
 			}
-			this.emit(code.OpGreaterThan)
+			self.emit(code.OpGreaterThan)
 			return nil
 		}
 
-		err := this.Compile(node.Left)
+		err := self.Compile(node.Left)
 		if err != nil {
 			return err
 		}
 
-		err = this.Compile(node.Right)
+		err = self.Compile(node.Right)
 		if err != nil {
 			return err
 		}
 
 		switch node.Operator {
 		case "+":
-			this.emit(code.OpAdd)
+			self.emit(code.OpAdd)
 		case "-":
-			this.emit(code.OpSub)
+			self.emit(code.OpSub)
 		case "*":
-			this.emit(code.OpMul)
+			self.emit(code.OpMul)
 		case "/":
-			this.emit(code.OpDiv)
+			self.emit(code.OpDiv)
 		case ">":
-			this.emit(code.OpGreaterThan)
+			self.emit(code.OpGreaterThan)
 		case "==":
-			this.emit(code.OpEqual)
+			self.emit(code.OpEqual)
 		case "!=":
-			this.emit(code.OpNotEqual)
+			self.emit(code.OpNotEqual)
 		default:
 			return fmt.Errorf("unknown operator %s", node.Operator)
 		}
 	case *ast.IntegerLiteral:
 		integer := &object.Integer{Value: node.Value}
-		this.emit(code.OpConstant, this.addConstant(integer))
+		self.emit(code.OpConstant, self.addConstant(integer))
 	case *ast.Boolean:
 		if node.Value {
-			this.emit(code.OpTrue)
+			self.emit(code.OpTrue)
 		} else {
-			this.emit(code.OpFalse)
+			self.emit(code.OpFalse)
+		}
+	case *ast.PrefixExpression:
+		err := self.Compile(node.Right)
+		if err != nil {
+			return err
+		}
+
+		switch node.Operator {
+		case "!":
+			self.emit(code.OpBang)
+		case "-":
+			self.emit(code.OpMinus)
+		default:
+			return fmt.Errorf("unknown operator %s", node.Operator)
 		}
 	}
 
 	return nil
 }
 
-func (this *Compiler) Bytecode() *Bytecode {
+func (self *Compiler) Bytecode() *Bytecode {
 	return &Bytecode{
-		Instructions: this.instructions,
-		Constants: 	  this.constants,
+		Instructions: self.instructions,
+		Constants: 	  self.constants,
 	}
 }
 
@@ -103,19 +117,19 @@ type Bytecode struct {
 	Constants 	 []object.Object
 }
 
-func (this *Compiler) addConstant(obj object.Object) int {
-	this.constants = append(this.constants, obj)
-	return len(this.constants) - 1
+func (self *Compiler) addConstant(obj object.Object) int {
+	self.constants = append(self.constants, obj)
+	return len(self.constants) - 1
 }
 
-func (this *Compiler) emit(op code.Opcode, operands ...int) int {
+func (self *Compiler) emit(op code.Opcode, operands ...int) int {
 	ins := code.Make(op, operands...)
-	pos := this.addInstruction(ins)
+	pos := self.addInstruction(ins)
 	return pos
 }
 
-func (this *Compiler) addInstruction(ins []byte) int {
-	posNewInstruction := len(this.instructions)
-	this.instructions = append(this.instructions, ins...)
+func (self *Compiler) addInstruction(ins []byte) int {
+	posNewInstruction := len(self.instructions)
+	self.instructions = append(self.instructions, ins...)
 	return posNewInstruction
 }
