@@ -34,7 +34,7 @@ func runVmTests(t *testing.T, tests []vmTestCase) {
 		}
 
 		stackElem := vm.LastPoppedStackElem()
-
+		
 		testExpectedObject(t, test.expected, stackElem)
 	}
 }

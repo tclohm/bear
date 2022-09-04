@@ -162,7 +162,7 @@ func (self *VM) executeIntegerComparison(op code.Opcode, left, right object.Obje
 	case code.OpNotEqual:
 		return self.push(nativeBoolToBooleanObject(rightValue != leftValue))
 	case code.OpGreaterThan:
-		return self.push(nativeBoolToBooleanObject(leftValue > leftValue))
+		return self.push(nativeBoolToBooleanObject(leftValue > rightValue))
 	default:
 		return fmt.Errorf("unknown operator: %d", op)
 	}
