@@ -7,15 +7,26 @@ import (
 	"bear/object"
 )
 
+
+type EmittedInstruction struct {
+	Opcode 		code.Opcode
+	Position 	int
+}
+
 type Compiler struct {
-	instructions code.Instructions
-	constants  	 []object.Object
+	instructions 		code.Instructions
+	constants  	 		[]object.Object
+
+	lastInstruction 	EmittedInstruction
+	previousInstruction EmittedInstruction
 }
 
 func New() *Compiler {
 	return &Compiler{
-		instructions: code.Instructions{},
-		constants: 	  []object.Object{},
+		instructions: 		 code.Instructions{},
+		constants: 	  		 []object.Object{},
+		lastInstruction: 	 EmittedInstruction{},
+		previousInstruction: EmittedInstruction{},
 	}
 }
 
@@ -100,6 +111,32 @@ func (self *Compiler) Compile(node ast.Node) error {
 		default:
 			return fmt.Errorf("unknown operator %s", node.Operator)
 		}
+	case *ast.IfExpression:
+		err := self.Compile(node.Condition)
+		if err != nil {
+			return err
+		}
+
+		jumpNotTruthyPos := self.emit(code.OpJumpNotTruthy, 9999)
+
+		err = self.Compile(node.Consequence)
+		if err != nil {
+			return err
+		}
+
+		if self.lastInstructionIsPop() {
+			self.removeLastPop()
+		}
+
+		afterConsequencePos := len(self.instructions)
+		self.changeOperand(jumpNotTruthyPos, afterConsequencePos)
+	case *ast.BlockStatement:
+		for _, s := range node.Statements {
+			err := self.Compile(s)
+			if err != nil {
+				return err
+			}
+		}
 	}
 
 	return nil
@@ -125,6 +162,7 @@ func (self *Compiler) addConstant(obj object.Object) int {
 func (self *Compiler) emit(op code.Opcode, operands ...int) int {
 	ins := code.Make(op, operands...)
 	pos := self.addInstruction(ins)
+	self.setLastInstruction(op, pos)
 	return pos
 }
 
@@ -132,4 +170,32 @@ func (self *Compiler) addInstruction(ins []byte) int {
 	posNewInstruction := len(self.instructions)
 	self.instructions = append(self.instructions, ins...)
 	return posNewInstruction
+}
+
+func (self *Compiler) setLastInstruction(op code.Opcode, pos int) {
+	previous := self.lastInstruction
+	last := EmittedInstruction{Opcode: op, Position: pos}
+	self.previousInstruction = previous
+	self.lastInstruction = last
+}
+
+func (self *Compiler) lastInstructionIsPop() bool {
+	return self.lastInstruction.Opcode == code.OpPop
+}
+
+func (self *Compiler) removeLastPop() {
+	self.instructions = self.instructions[:self.lastInstruction.Position]
+	self.lastInstruction = self.previousInstruction
+}
+
+func (self *Compiler) replaceInstruction(pos int, newInstruction []byte) {
+	for i := 0 ; i < len(newInstruction) ; i++ {
+		self.instructions[pos + i] = newInstruction[i]
+	}
+}
+
+func (self *Compiler) changeOperand(opPos int, operand int) {
+	op := code.Opcode(self.instructions[opPos])
+	newInstruction := code.Make(op, operand)
+	self.replaceInstruction(opPos, newInstruction)
 }
