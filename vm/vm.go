@@ -10,6 +10,7 @@ import (
 const StackSize = 2048
 var True = &object.Boolean{Value: true}
 var False = &object.Boolean{Value: false}
+var Null = &object.Null{}
 
 type VM struct {
 	constants 	 []object.Object
@@ -80,6 +81,17 @@ func (self *VM) Run() error {
 			err := self.executeMinusOperator()
 			if err != nil {
 				return err
+			}
+		case code.OpJump:
+			pos := int(code.ReadUint16(self.instructions[ip+1:]))
+			ip = pos - 1
+		case code.OpJumpNotTruthy:
+			pos := int(code.ReadUint16(self.instructions[ip+1:]))
+			ip += 2
+
+			condition := self.pop()
+			if !isTruthy(condition) {
+				ip = pos - 1
 			}
 		}
 	}
@@ -207,4 +219,13 @@ func (self *VM) executeMinusOperator() error {
 
 	value := operand.(*object.Integer).Value
 	return self.push(&object.Integer{Value: -value})
+}
+
+func isTruthy(obj object.Object) bool {
+	switch obj := obj.(type) {
+	case *object.Boolean:
+		return obj.Value
+	default:
+		return true
+	}
 }
