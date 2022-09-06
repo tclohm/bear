@@ -269,7 +269,7 @@ func TestBooleanExpression(t *testing.T) {
 	runCompilerTests(t, tests)
 }
 
-func TestConditional(t *testing.T) {
+func TestConditionals(t *testing.T) {
 	tests := []compilerTestCase{
 		{
 			input: `
@@ -284,32 +284,19 @@ func TestConditional(t *testing.T) {
 				// 0004
 				code.Make(code.OpConstant, 0),
 				// 0007
-				code.Make(code.OpJump, 13),
+				code.Make(code.OpJump, 11),
 				// 0010
-				code.Make(code.OpConstant, 1), 
+				code.Make(code.OpNull),
 				// 0011
 				code.Make(code.OpPop),
-				// 0014
-				code.Make(code.OpConstant, 2),
-				// 0017
+				// 0012
+				code.Make(code.OpConstant, 1), 
+				// 0015
 				code.Make(code.OpPop),
+				// 0014
 			},
 		},
 	}
 
 	runCompilerTests(t, tests)
-}
-
-func TestConditionals(t *testing.T) {
-	tests := []vmTestCase{
-		{"if (true) { 10 }", 10},
-		{"if (true) { 10 } else { 20 }", 10},
-		{"if (false) { 10 } else { 20 } ", 20},
-		{"if (1) { 10 }", 10},
-		{"if (1 < 2) { 10 }", 10},
-		{"if (1 < 2) { 10 } else { 20 }", 10},
-		{"if (1 > 2) { 10 } else { 20 }", 20},
-	}
-	
-	runVmTests(t, tests)
 }

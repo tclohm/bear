@@ -128,20 +128,16 @@ func (self *Compiler) Compile(node ast.Node) error {
 			self.removeLastPop()
 		}
 
-		if node.Alternative == nil {
-			afterConsequencePos := len(self.instructions)
-			self.changeOperand(jumpNotTruthyPos, afterConsequencePos)
-		} else {
-			jumpPos := self.emit(code.OpJump, 9999)
-			
-			afterConsequencePos := len(self.instructions)
-			self.changeOperand(jumpNotTruthyPos, afterConsequencePos)
+		jumpPos := self.emit(code.OpJump, 9999)
 
+		if node.Alternative == nil {
+			self.emit(code.OpNull)
+		} else {
 			err := self.Compile(node.Alternative)
 			if err != nil {
 				return err
 			}
-
+			
 			if self.lastInstructionIsPop() {
 				self.removeLastPop()
 			}
