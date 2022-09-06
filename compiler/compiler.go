@@ -128,8 +128,27 @@ func (self *Compiler) Compile(node ast.Node) error {
 			self.removeLastPop()
 		}
 
-		afterConsequencePos := len(self.instructions)
-		self.changeOperand(jumpNotTruthyPos, afterConsequencePos)
+		if node.Alternative == nil {
+			afterConsequencePos := len(self.instructions)
+			self.changeOperand(jumpNotTruthyPos, afterConsequencePos)
+		} else {
+			jumpPos := self.emit(code.OpJump, 9999)
+			
+			afterConsequencePos := len(self.instructions)
+			self.changeOperand(jumpNotTruthyPos, afterConsequencePos)
+
+			err := self.Compile(node.Alternative)
+			if err != nil {
+				return err
+			}
+
+			if self.lastInstructionIsPop() {
+				self.removeLastPop()
+			}
+
+			afterAlternativePos := len(self.instructions)
+			self.changeOperand(jumpPos, afterAlternativePos)
+		}
 	case *ast.BlockStatement:
 		for _, s := range node.Statements {
 			err := self.Compile(s)
