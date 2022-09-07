@@ -130,6 +130,9 @@ func (self *Compiler) Compile(node ast.Node) error {
 
 		jumpPos := self.emit(code.OpJump, 9999)
 
+		afterConsequencePos := len(self.instructions)
+		self.changeOperand(jumpNotTruthyPos, afterConsequencePos)
+
 		if node.Alternative == nil {
 			self.emit(code.OpNull)
 		} else {
@@ -141,10 +144,12 @@ func (self *Compiler) Compile(node ast.Node) error {
 			if self.lastInstructionIsPop() {
 				self.removeLastPop()
 			}
-
-			afterAlternativePos := len(self.instructions)
-			self.changeOperand(jumpPos, afterAlternativePos)
 		}
+
+		afterAlternativePos := len(self.instructions)
+		self.changeOperand(jumpPos, afterAlternativePos)
+
+		
 	case *ast.BlockStatement:
 		for _, s := range node.Statements {
 			err := self.Compile(s)
