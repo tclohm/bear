@@ -210,6 +210,8 @@ func (self *VM) executeBangOperator() error {
 		return self.push(False)
 	case False:
 		return self.push(True)
+	case Null:
+		return self.push(True)
 	default:
 		return self.push(False)
 	}
