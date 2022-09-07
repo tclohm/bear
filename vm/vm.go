@@ -93,6 +93,11 @@ func (self *VM) Run() error {
 			if !isTruthy(condition) {
 				ip = pos - 1
 			}
+		case code.OpNull:
+			err := self.push(Null)
+			if err != nil {
+				return err
+			}
 		}
 	}
 
