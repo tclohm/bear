@@ -32,6 +32,8 @@ const (
 	OpJumpNotTruthy
 	OpJump
 	OpNull
+	OpGetGlobal
+	OpSetGlobal
 )
 
 var definitions = map[Opcode]*Definition{
@@ -51,6 +53,8 @@ var definitions = map[Opcode]*Definition{
 	OpJumpNotTruthy: 	{Name: "OpJumpNotTruthy", 	OperandWidths: []int{2}},
 	OpJump: 			{Name: "OpJump", 			OperandWidths: []int{2}},
 	OpNull: 			{Name: "OpNull", 			OperandWidths: []int{}},
+	OpGetGlobal: 		{Name: "OpGetGlobal", 		OperandWidths: []int{2}},
+	OpSetGlobal: 		{Name: "OpSetGlobal", 		OperandWidths: []int{2}},
 }
 
 func Lookup(op byte) (*Definition, error) {
