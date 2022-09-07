@@ -255,3 +255,9 @@ func isTruthy(obj object.Object) bool {
 		return true
 	}
 }
+
+func NewWithGlobalsStore(bytecode *compiler.Bytecode, s []object.Object) *VM {
+	vm := New(bytecode)
+	vm.globals = s
+	return vm
+}
