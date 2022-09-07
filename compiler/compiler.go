@@ -174,6 +174,9 @@ func (self *Compiler) Compile(node ast.Node) error {
 		}
 
 		self.emit(code.OpGetGlobal, symbol.Index)
+	case *ast.StringLiteral:
+		str := &object.String{Value: node.Value}
+		self.emit(code.OpConstant, self.addConstant(str))
 	}
 
 	return nil

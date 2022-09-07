@@ -158,6 +158,11 @@ func testConstants(
 			if err != nil {
 				return fmt.Errorf("constant %d - testIntegerObject failed: %s", i, err)
 			}
+		case string:
+			err := testStringObject(constant, actual[i])
+			if err != nil {
+				return fmt.Errorf("constant %d - testStringObject failed: %s", i, err)
+			}
 		}
 	}
 
@@ -349,12 +354,44 @@ func TestGlobalLetStatements(t *testing.T) {
 	runCompilerTests(t, tests)
 }
 
-func TestGlobalLetStatements(t *testing.T) {
-	tests := []vmTestCase{
-		{"let one = 1; one", 1},
-		{"let one = 1; let two = 2; one + two", 3},
-		{"let one = 1; let two = one + one; one + two", 3},
+
+func TestStringExpression(t *testing.T) {
+	tests := []compilerTestCase{
+		{
+			input: `"bear"`, 
+			expectedConstants: []interface{}{"bear"}, 
+			expectedInstructions: []code.Instructions{
+	            code.Make(code.OpConstant, 0),
+	            code.Make(code.OpPop),
+	        },
+    	},
+    	{
+    		input: `"be" + "ar"`, 
+    		expectedConstants: []interface{}{"be", "ar"}, 
+    		expectedInstructions: []code.Instructions{
+            	code.Make(code.OpConstant, 0),
+            	code.Make(code.OpConstant, 1),
+            	code.Make(code.OpAdd),
+            	code.Make(code.OpPop),
+        	},
+    	},
 	}
 
-	runVmTests(t, tests)
+	runCompilerTests(t, tests)
 }
+
+func testStringObject(expected string, actual object.Object) error {
+	result, ok := actual.(*object.String)
+	if !ok {
+		return fmt.Errorf("object is not String. got=%T (%+v)", actual, actual)
+	}
+
+	if result.Value != expected {
+		return fmt.Errorf("object has wrong value. got=%q, want=%q", result.Value, expected)
+	}
+
+	return nil
+}
+
+
+
