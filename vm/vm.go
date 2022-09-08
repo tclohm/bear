@@ -149,8 +149,13 @@ func (self *VM) executeBinaryOperation(op code.Opcode) error {
 	leftType := left.Type()
 	rightType := right.Type()
 
-	if leftType == object.INTEGER_OBJ && rightType == object.INTEGER_OBJ {
+	switch {
+	case leftType == object.INTEGER_OBJ && rightType == object.INTEGER_OBJ:
 		return self.executeBinaryIntegerOperation(op, left, right)
+	case leftType == object.STRING_OBJ && rightType == object.STRING_OBJ:
+		return self.executeBinaryStringOperation(op, left, right)
+	default:
+		return fmt.Errorf("unsupported types for binary operation: %s %s", leftType, rightType)
 	}
 	
 	return fmt.Errorf("unsupported types for binary operation: %s %s", leftType, rightType)
@@ -261,3 +266,16 @@ func NewWithGlobalsStore(bytecode *compiler.Bytecode, s []object.Object) *VM {
 	vm.globals = s
 	return vm
 }
+
+func (self *VM) executeBinaryStringOperation(op code.Opcode, left, right object.Object) error {
+	if op != code.OpAdd {
+		return fmt.Errorf("unknown string operator: %d", op)
+	}
+
+	leftValue := left.(*object.String).Value
+	rightValue := right.(*object.String).Value
+
+	return self.push(&object.String{Value: leftValue + rightValue})
+}
+
+
