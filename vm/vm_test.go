@@ -61,6 +61,11 @@ func testExpectedObject(
 		if actual != Null {
 			t.Errorf("object is not Null: %T (%+v)", actual, actual)
 		}
+	case string:
+		err := testStringObject(expected, actual)
+		if err != nil {
+			t.Errorf("testStringObject failed: %s", err)
+		}
 	}
 }
 
@@ -177,3 +182,15 @@ func TestGlobalLetStatements(t *testing.T) {
 	runVmTests(t, tests)
 }
 
+func testStringObject(expected string, actual object.Object) error {
+	result, ok := actual.(*object.String)
+	if !ok {
+		return fmt.Errorf("object is not String. got=%T (%+v)", actual, actual)
+	}
+
+	if result.Value != expected {
+		return fmt.Errorf("object has wrong value. got=%q, want=%q", result.Value, expected)
+	}
+
+	return nil
+}
