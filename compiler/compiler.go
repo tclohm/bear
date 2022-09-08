@@ -177,6 +177,15 @@ func (self *Compiler) Compile(node ast.Node) error {
 	case *ast.StringLiteral:
 		str := &object.String{Value: node.Value}
 		self.emit(code.OpConstant, self.addConstant(str))
+	case *ast.ArrayLiteral:
+		for _, el := range node.Elements {
+			err := self.Compile(el)
+			if err != nil {
+				return err
+			}
+		}
+
+		self.emit(code.OpArray, len(node.Elements))
 	}
 
 	return nil
