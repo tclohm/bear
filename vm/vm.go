@@ -47,6 +47,7 @@ func (self *VM) Run() error {
 		op := code.Opcode(self.instructions[ip])
 
 		switch op {
+
 		case code.OpConstant:
 			constIndex := code.ReadUint16(self.instructions[ip+1:])
 			// MARK: - ip point to opcode instead of an operand
@@ -55,41 +56,50 @@ func (self *VM) Run() error {
 			if err != nil {
 				return err
 			}
+
 		case code.OpAdd, code.OpSub, code.OpMul, code.OpDiv:
 			err := self.executeBinaryOperation(op)
 			if err != nil {
 				return err
 			}
+
 		case code.OpPop:
 			self.pop()
+
 		case code.OpTrue:
 			err := self.push(True)
 			if err != nil {
 				return err
 			}
+
 		case code.OpFalse:
 			err := self.push(False)
 			if err != nil {
 				return err
 			}
+
 		case code.OpEqual, code.OpNotEqual, code.OpGreaterThan:
 			err := self.executeComparison(op)
 			if err != nil {
 				return err
 			}
+
 		case code.OpBang:
 			err := self.executeBangOperator()
 			if err != nil {
 				return err
 			}
+
 		case code.OpMinus:
 			err := self.executeMinusOperator()
 			if err != nil {
 				return err
 			}
+
 		case code.OpJump:
 			pos := int(code.ReadUint16(self.instructions[ip+1:]))
 			ip = pos - 1
+
 		case code.OpJumpNotTruthy:
 			pos := int(code.ReadUint16(self.instructions[ip+1:]))
 			ip += 2
@@ -98,15 +108,18 @@ func (self *VM) Run() error {
 			if !isTruthy(condition) {
 				ip = pos - 1
 			}
+
 		case code.OpNull:
 			err := self.push(Null)
 			if err != nil {
 				return err
 			}
+
 		case code.OpSetGlobal:
 			globalIndex := code.ReadUint16(self.instructions[ip + 1:])
 			ip += 2
 			self.globals[globalIndex] = self.pop()
+
 		case code.OpGetGlobal:
 			globalIndex := code.ReadUint16(self.instructions[ip + 1:])
 			ip += 2
@@ -115,6 +128,7 @@ func (self *VM) Run() error {
 			if err != nil {
 				return err
 			}
+
 		case code.OpArray:
 			numberElems := int(code.ReadUint16(self.instructions[ip+1:]))
 			ip += 2
@@ -124,6 +138,24 @@ func (self *VM) Run() error {
 
 			err := self.push(array)
 
+			if err != nil {
+				return err
+			}
+
+		case code.OpHash:
+			numberElems := int(code.ReadUint16(self.instructions[ip + 1:]))
+			ip += 2
+
+			hash, err := self.buildHash(self.sp - numberElems, self.sp)
+			if err != nil {
+				return err
+			}
+
+			self.sp = self.sp - numberElems
+
+			err = self.push(hash)
+
+			err = self.push(hash)
 			if err != nil {
 				return err
 			}
@@ -300,6 +332,25 @@ func (self *VM) buildArray(start, end int) object.Object {
 	return &object.Array{Elements: elements}
 }
 
+func (self *VM) buildHash(start, end int) (object.Object, error) {
+	hashedPairs := make(map[object.HashKey]object.HashPair)
 
+	for i := start ; i < end ; i += 2 {
+		key := self.stack[i]
+		value := self.stack[i + 1]
+
+		pair := object.HashPair{Key: key, Value: value}
+
+		hashKey, ok := key.(object.Hashable)
+		if !ok {
+			return nil, fmt.Errorf("unusable as hash key: %s", key.Type())
+		}
+
+		hashedPairs[hashKey.HashKey()] = pair
+
+	}
+
+	return &object.Hash{Pairs: hashedPairs}, nil
+}
 
 

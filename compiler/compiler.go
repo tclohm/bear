@@ -5,6 +5,7 @@ import (
 	"bear/ast"
 	"bear/code"
 	"bear/object"
+	"sort"
 )
 
 
@@ -35,6 +36,7 @@ func New() *Compiler {
 
 func (self *Compiler) Compile(node ast.Node) error {
 	switch node := node.(type) {
+
 	case *ast.Program:
 		for _, s := range node.Statements {
 			err := self.Compile(s)
@@ -42,12 +44,14 @@ func (self *Compiler) Compile(node ast.Node) error {
 				return err
 			}
 		}
+
 	case *ast.ExpressionStatement:
 		err := self.Compile(node.Expression)
 		if err != nil {
 			return err
 		}
 		self.emit(code.OpPop)
+
 	case *ast.InfixExpression:
 		if node.Operator == "<" {
 			err := self.Compile(node.Right)
@@ -91,15 +95,18 @@ func (self *Compiler) Compile(node ast.Node) error {
 		default:
 			return fmt.Errorf("unknown operator %s", node.Operator)
 		}
+
 	case *ast.IntegerLiteral:
 		integer := &object.Integer{Value: node.Value}
 		self.emit(code.OpConstant, self.addConstant(integer))
+
 	case *ast.Boolean:
 		if node.Value {
 			self.emit(code.OpTrue)
 		} else {
 			self.emit(code.OpFalse)
 		}
+
 	case *ast.PrefixExpression:
 		err := self.Compile(node.Right)
 		if err != nil {
@@ -114,6 +121,7 @@ func (self *Compiler) Compile(node ast.Node) error {
 		default:
 			return fmt.Errorf("unknown operator %s", node.Operator)
 		}
+
 	case *ast.IfExpression:
 		err := self.Compile(node.Condition)
 		if err != nil {
@@ -152,7 +160,6 @@ func (self *Compiler) Compile(node ast.Node) error {
 		afterAlternativePos := len(self.instructions)
 		self.changeOperand(jumpPos, afterAlternativePos)
 
-		
 	case *ast.BlockStatement:
 		for _, s := range node.Statements {
 			err := self.Compile(s)
@@ -160,6 +167,7 @@ func (self *Compiler) Compile(node ast.Node) error {
 				return err
 			}
 		}
+
 	case *ast.LetStatement:
 		err := self.Compile(node.Value)
 		if err != nil {
@@ -167,6 +175,7 @@ func (self *Compiler) Compile(node ast.Node) error {
 		}
 		symbol := self.symbolTable.Define(node.Name.Value)
 		self.emit(code.OpSetGlobal, symbol.Index)
+
 	case *ast.Identifier:
 		symbol, ok := self.symbolTable.Resolve(node.Value)
 		if !ok {
@@ -174,9 +183,11 @@ func (self *Compiler) Compile(node ast.Node) error {
 		}
 
 		self.emit(code.OpGetGlobal, symbol.Index)
+
 	case *ast.StringLiteral:
 		str := &object.String{Value: node.Value}
 		self.emit(code.OpConstant, self.addConstant(str))
+
 	case *ast.ArrayLiteral:
 		for _, el := range node.Elements {
 			err := self.Compile(el)
@@ -186,6 +197,28 @@ func (self *Compiler) Compile(node ast.Node) error {
 		}
 
 		self.emit(code.OpArray, len(node.Elements))
+
+	case *ast.HashLiteral:
+		keys := []ast.Expression{}
+		for k := range node.Pairs {
+			keys = append(keys, k)
+		}
+		sort.Slice(keys, func(i, j int) bool {
+			return keys[i].String() < keys[j].String()
+		})
+
+		for _, k := range keys {
+			err := self.Compile(k)
+			if err != nil {
+				return err
+			}
+			err = self.Compile(node.Pairs[k])
+			if err != nil {
+				return err
+			}
+		}
+
+		self.emit(code.OpHash, len(node.Pairs)*2)
 	}
 
 	return nil
