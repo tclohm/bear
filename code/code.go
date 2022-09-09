@@ -36,6 +36,7 @@ const (
 	OpSetGlobal
 	OpArray
 	OpHash
+	OpIndex
 )
 
 var definitions = map[Opcode]*Definition{
@@ -59,6 +60,7 @@ var definitions = map[Opcode]*Definition{
 	OpSetGlobal: 		{Name: "OpSetGlobal", 		OperandWidths: []int{2}},
 	OpArray: 			{Name: "OpArray", 			OperandWidths: []int{2}},
 	OpHash: 			{Name: "OpHash", 			OperandWidths: []int{2}},
+	OpIndex: 			{Name: "OpIndex", 			OperandWidths: []int{}},
 }
 
 func Lookup(op byte) (*Definition, error) {
