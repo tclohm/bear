@@ -250,7 +250,7 @@ func (self *Compiler) Compile(node ast.Node) error {
 
 func (self *Compiler) Bytecode() *Bytecode {
 	return &Bytecode{
-		Instructions: self.instructions,
+		Instructions: self.currentInstructions(),
 		Constants: 	  self.constants,
 	}
 }
@@ -273,7 +273,7 @@ func (self *Compiler) emit(op code.Opcode, operands ...int) int {
 }
 
 func (self *Compiler) addInstruction(ins []byte) int {
-	posNewInstruction := len(self.instructions)
+	posNewInstruction := len(self.currentInstructions())
 	updatedInstructions := append(self.currentInstructions(), ins...)
 
 	self.scopes[self.scopeIndex].instructions = updatedInstructions
@@ -282,7 +282,7 @@ func (self *Compiler) addInstruction(ins []byte) int {
 }
 
 func (self *Compiler) setLastInstruction(op code.Opcode, pos int) {
-	previous := self.lastInstruction
+	previous := self.scopes[self.scopeIndex].lastInstruction
 	last := EmittedInstruction{Opcode: op, Position: pos}
 
 	self.scopes[self.scopeIndex].previousInstruction = previous
@@ -327,4 +327,23 @@ func NewWithState(s *SymbolTable, constants []object.Object) *Compiler {
 
 func (self *Compiler) currentInstructions() code.Instructions {
 	return self.scopes[self.scopeIndex].instructions
+}
+
+func (self *Compiler) enterScope() {
+	scope := CompilationScope{
+		instructions: code.Instructions{},
+		lastInstruction: EmittedInstruction{},
+		previousInstruction: EmittedInstruction{},
+	}
+	self.scopes = append(self.scopes, scope)
+	self.scopeIndex++
+}
+
+func (self *Compiler) leaveScope() code.Instructions {
+	instructions := self.currentInstructions()
+
+	self.scopes = self.scopes[:len(self.scopes)-1]
+	self.scopeIndex--
+
+	return instructions
 }

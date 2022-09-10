@@ -553,7 +553,7 @@ func TestFunctions(t *testing.T) {
 
 
 func TestCompilerScopes(t *testing.T) {
-	compiler := new()
+	compiler := New()
 	if compiler.scopeIndex != 0 {
 		t.Errorf("scopeIndex wrong. got=%d, want=%d", compiler.scopeIndex, 0)
 	}
