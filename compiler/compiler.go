@@ -145,7 +145,7 @@ func (self *Compiler) Compile(node ast.Node) error {
 			return err
 		}
 
-		if self.lastInstructionIsPop() {
+		if self.lastInstructionIs(code.OpPop) {
 			self.removeLastPop()
 		}
 
@@ -162,7 +162,7 @@ func (self *Compiler) Compile(node ast.Node) error {
 				return err
 			}
 			
-			if self.lastInstructionIsPop() {
+			if self.lastInstructionIs(code.OpPop) {
 				self.removeLastPop()
 			}
 		}
@@ -252,6 +252,10 @@ func (self *Compiler) Compile(node ast.Node) error {
 			return err
 		}
 
+		if self.lastInstructionIs(code.OpPop) {
+			self.replaceLastPopWithReturn()
+		}
+
 		instructions := self.leaveScope()
 
 		compiledFn := &object.CompiledFunction{Instructions: instructions}
@@ -310,8 +314,12 @@ func (self *Compiler) setLastInstruction(op code.Opcode, pos int) {
 	self.scopes[self.scopeIndex].lastInstruction = last
 }
 
-func (self *Compiler) lastInstructionIsPop() bool {
-	return self.scopes[self.scopeIndex].lastInstruction.Opcode == code.OpPop
+func (self *Compiler) lastInstructionIs(op code.Opcode) bool {
+	if len(self.currentInstructions()) == 0 {
+		return false
+	}
+
+	return self.scopes[self.scopeIndex].lastInstruction.Opcode == op
 }
 
 func (self *Compiler) removeLastPop() {
@@ -367,4 +375,11 @@ func (self *Compiler) leaveScope() code.Instructions {
 	self.scopeIndex--
 
 	return instructions
+}
+
+func (self *Compiler) replaceLastPopWithReturn() {
+	lastPos := self.scopes[self.scopeIndex].lastInstruction.Position
+	self.replaceInstruction(lastPos, code.Make(code.OpReturnValue))
+
+	self.scopes[self.scopeIndex].lastInstruction.Opcode = code.OpReturnValue
 }
