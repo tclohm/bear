@@ -14,23 +14,33 @@ type EmittedInstruction struct {
 	Position 	int
 }
 
-type Compiler struct {
+type CompilationScope struct {
 	instructions 		code.Instructions
-	constants  	 		[]object.Object
-
 	lastInstruction 	EmittedInstruction
 	previousInstruction EmittedInstruction
+}
+
+type Compiler struct {
+	constants  	 		[]object.Object
 
 	symbolTable 		*SymbolTable
+
+	scopes 				[]CompilationScope
+	scopeIndex 			int
 }
 
 func New() *Compiler {
+	mainScope := CompilationScope{
+		instructions: 			code.Instructions{},
+		lastInstruction: 		EmittedInstruction{},
+		previousInstruction: 	EmittedInstruction{},
+	}
+
 	return &Compiler{
-		instructions: 		 code.Instructions{},
-		constants: 	  		 []object.Object{},
-		lastInstruction: 	 EmittedInstruction{},
-		previousInstruction: EmittedInstruction{},
-		symbolTable: 		 NewSymbolTable(),
+		constants:		[]object.Object{},
+		symbolTable: 	NewSymbolTable(),
+		scopes: 		[]CompilationScope{mainScope},
+		scopeIndex: 	0,
 	}
 }
 
@@ -141,7 +151,7 @@ func (self *Compiler) Compile(node ast.Node) error {
 
 		jumpPos := self.emit(code.OpJump, 9999)
 
-		afterConsequencePos := len(self.instructions)
+		afterConsequencePos := len(self.currentInstructions())
 		self.changeOperand(jumpNotTruthyPos, afterConsequencePos)
 
 		if node.Alternative == nil {
@@ -157,7 +167,7 @@ func (self *Compiler) Compile(node ast.Node) error {
 			}
 		}
 
-		afterAlternativePos := len(self.instructions)
+		afterAlternativePos := len(self.currentInstructions())
 		self.changeOperand(jumpPos, afterAlternativePos)
 
 	case *ast.BlockStatement:
@@ -264,34 +274,46 @@ func (self *Compiler) emit(op code.Opcode, operands ...int) int {
 
 func (self *Compiler) addInstruction(ins []byte) int {
 	posNewInstruction := len(self.instructions)
-	self.instructions = append(self.instructions, ins...)
+	updatedInstructions := append(self.currentInstructions(), ins...)
+
+	self.scopes[self.scopeIndex].instructions = updatedInstructions
+
 	return posNewInstruction
 }
 
 func (self *Compiler) setLastInstruction(op code.Opcode, pos int) {
 	previous := self.lastInstruction
 	last := EmittedInstruction{Opcode: op, Position: pos}
-	self.previousInstruction = previous
-	self.lastInstruction = last
+
+	self.scopes[self.scopeIndex].previousInstruction = previous
+	self.scopes[self.scopeIndex].lastInstruction = last
 }
 
 func (self *Compiler) lastInstructionIsPop() bool {
-	return self.lastInstruction.Opcode == code.OpPop
+	return self.scopes[self.scopeIndex].lastInstruction.Opcode == code.OpPop
 }
 
 func (self *Compiler) removeLastPop() {
-	self.instructions = self.instructions[:self.lastInstruction.Position]
-	self.lastInstruction = self.previousInstruction
+	last := self.scopes[self.scopeIndex].lastInstruction
+	previous := self.scopes[self.scopeIndex].previousInstruction
+
+	old := self.currentInstructions()
+	new := old[:last.Position]
+
+	self.scopes[self.scopeIndex].instructions = new
+	self.scopes[self.scopeIndex].lastInstruction = previous
 }
 
 func (self *Compiler) replaceInstruction(pos int, newInstruction []byte) {
+	ins := self.currentInstructions()
+
 	for i := 0 ; i < len(newInstruction) ; i++ {
-		self.instructions[pos + i] = newInstruction[i]
+		ins[pos + i] = newInstruction[i]
 	}
 }
 
 func (self *Compiler) changeOperand(opPos int, operand int) {
-	op := code.Opcode(self.instructions[opPos])
+	op := code.Opcode(self.currentInstructions()[opPos])
 	newInstruction := code.Make(op, operand)
 	self.replaceInstruction(opPos, newInstruction)
 }
@@ -301,4 +323,8 @@ func NewWithState(s *SymbolTable, constants []object.Object) *Compiler {
 	compiler.symbolTable = s
 	compiler.constants = constants
 	return compiler
+}
+
+func (self *Compiler) currentInstructions() code.Instructions {
+	return self.scopes[self.scopeIndex].instructions
 }
