@@ -243,6 +243,27 @@ func (self *Compiler) Compile(node ast.Node) error {
 		}
 
 		self.emit(code.OpIndex)
+
+	case *ast.FunctionLiteral:
+		self.enterScope()
+
+		err := self.Compile(node.Body)
+		if err != nil {
+			return err
+		}
+
+		instructions := self.leaveScope()
+
+		compiledFn := &object.CompiledFunction{Instructions: instructions}
+		self.emit(code.OpConstant, self.addConstant(compiledFn))
+
+	case *ast.ReturnStatement:
+		err := self.Compile(node.ReturnValue)
+		if err != nil {
+			return err
+		}
+
+		self.emit(code.OpReturnValue)
 	}
 
 	return nil
