@@ -256,6 +256,10 @@ func (self *Compiler) Compile(node ast.Node) error {
 			self.replaceLastPopWithReturn()
 		}
 
+		if !self.lastInstructionIs(code.OpReturnValue) {
+			self.emit(code.OpReturn)
+		}
+
 		instructions := self.leaveScope()
 
 		compiledFn := &object.CompiledFunction{Instructions: instructions}
