@@ -203,6 +203,25 @@ func (self *VM) Run() error {
 			if err != nil {
 				return err
 			}
+
+		case code.OpCall:
+			fn, ok := self.stack[self.sp - 1].(*object.CompiledFunction)
+			if !ok {
+				return fmt.Errorf("calling non-function")
+			}
+			frame := NewFrame(fn)
+			self.pushFrame(frame)
+
+		case code.OpReturnValue:
+			returnValue := self.pop()
+
+			self.popFrame()
+			self.pop()
+
+			err := self.push(returnValue)
+			if err != nil {
+				return err
+			}
 		}
 	}
 
