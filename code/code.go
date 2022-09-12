@@ -40,6 +40,8 @@ const (
 	OpCall
 	OpReturnValue
 	OpReturn
+	OpGetLocal
+	OpSetLocal
 )
 
 var definitions = map[Opcode]*Definition{
@@ -67,6 +69,8 @@ var definitions = map[Opcode]*Definition{
 	OpCall: 			{Name: "OpCall", 			OperandWidths: []int{}},
 	OpReturnValue: 		{Name: "OpReturnValue", 	OperandWidths: []int{}},
 	OpReturn: 			{Name: "OpReturn", 			OperandWidths: []int{}},
+	OpGetLocal: 		{Name: "OpGetLocal", 		OperandWidths: []int{1}},
+	OpSetLocal: 		{Name: "OpSetLocal", 		OperandWidths: []int{1}},
 }
 
 func Lookup(op byte) (*Definition, error) {
