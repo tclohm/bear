@@ -183,8 +183,14 @@ func (self *Compiler) Compile(node ast.Node) error {
 		if err != nil {
 			return err
 		}
+
 		symbol := self.symbolTable.Define(node.Name.Value)
-		self.emit(code.OpSetGlobal, symbol.Index)
+		if symbol.Scope == GlobalScope {
+			self.emit(code.OpSetGlobal, symbol.Index)
+		} else {
+			self.emit(code.OpSetLocal, symbol.Index)
+		}
+		
 
 	case *ast.Identifier:
 		symbol, ok := self.symbolTable.Resolve(node.Value)
@@ -192,7 +198,13 @@ func (self *Compiler) Compile(node ast.Node) error {
 			return fmt.Errorf("undefined variable %s", node.Value)
 		}
 
-		self.emit(code.OpGetGlobal, symbol.Index)
+		if symbol.Scope == GlobalScope {
+			self.emit(code.OpGetGlobal, symbol.Index)
+		} else {
+			self.emit(code.OpGetLocal, symbol.Index)
+		}
+
+		
 
 	case *ast.StringLiteral:
 		str := &object.String{Value: node.Value}
