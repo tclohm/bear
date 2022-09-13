@@ -378,6 +378,8 @@ func (self *Compiler) enterScope() {
 	}
 	self.scopes = append(self.scopes, scope)
 	self.scopeIndex++
+
+	self.symbolTable = NewEnclosedSymbolTable(self.symbolTable)
 }
 
 func (self *Compiler) leaveScope() code.Instructions {
@@ -385,6 +387,8 @@ func (self *Compiler) leaveScope() code.Instructions {
 
 	self.scopes = self.scopes[:len(self.scopes)-1]
 	self.scopeIndex--
+
+	self.symbolTable = self.symbolTable.Outer
 
 	return instructions
 }
