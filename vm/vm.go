@@ -216,8 +216,8 @@ func (self *VM) Run() error {
 		case code.OpReturnValue:
 			returnValue := self.pop()
 
-			self.popFrame()
-			self.pop()
+			frame := self.popFrame()
+			self.sp = frame.basePointer - 1
 
 			err := self.push(returnValue)
 			if err != nil {
@@ -225,8 +225,8 @@ func (self *VM) Run() error {
 			}
 			
 		case code.OpReturn:
-			self.popFrame()
-			self.pop()
+			frame := self.popFrame()
+			self.sp = frame.basePointer - 1
 
 			err := self.push(Null)
 			if err != nil {
