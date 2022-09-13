@@ -656,12 +656,12 @@ func TestFunctionCall(t *testing.T) {
 				24,
 				[]code.Instructions{
 					code.Make(code.OpConstant, 0), // The literal "24"
-				code.Make(code.OpReturnValue),
+					code.Make(code.OpReturnValue),
 				},
 			},
 			expectedInstructions: []code.Instructions{
 				code.Make(code.OpConstant, 1), // The compiled function 
-				code.Make(code.OpCall),
+				code.Make(code.OpCall, 0),
 				code.Make(code.OpPop),
 			},
 		},
@@ -681,7 +681,7 @@ func TestFunctionCall(t *testing.T) {
 				code.Make(code.OpConstant, 1), // The compiled function
 				code.Make(code.OpSetGlobal, 0),
 				code.Make(code.OpGetGlobal, 0),
-				code.Make(code.OpCall),
+				code.Make(code.OpCall, 0),
 				code.Make(code.OpPop),
 			},
 		},

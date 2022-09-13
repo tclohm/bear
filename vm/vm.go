@@ -205,6 +205,7 @@ func (self *VM) Run() error {
 			}
 
 		case code.OpCall:
+			self.currentFrame().ip += 1
 			fn, ok := self.stack[self.sp - 1].(*object.CompiledFunction)
 			if !ok {
 				return fmt.Errorf("calling non-function")

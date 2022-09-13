@@ -10,7 +10,7 @@ func TestString(t *testing.T) {
 		Statements: []Statement{
 			&LetStatement{
 				Token: token.Token{Type: token.LET, Literal: "let"},
-				Name &Identifier{
+				Name: &Identifier{
 					Token: token.Token{Type: token.IDENT, Literal: "variable"},
 					Value: "variable",
 				},
