@@ -43,7 +43,7 @@ func (self *VM) popFrame() *Frame {
 
 func New(bytecode *compiler.Bytecode) *VM {
 	mainFn := &object.CompiledFunction{Instructions: bytecode.Instructions}
-	mainFrame := NewFrame(mainFn)
+	mainFrame := NewFrame(mainFn, 0)
 
 	frames := make([]*Frame, MaxFrames)
 	frames[0] = mainFrame
@@ -209,8 +209,9 @@ func (self *VM) Run() error {
 			if !ok {
 				return fmt.Errorf("calling non-function")
 			}
-			frame := NewFrame(fn)
+			frame := NewFrame(fn, self.sp)
 			self.pushFrame(frame)
+			self.sp = frame.basePointer + fn.NumLocals
 
 		case code.OpReturnValue:
 			returnValue := self.pop()
@@ -228,6 +229,25 @@ func (self *VM) Run() error {
 			self.pop()
 
 			err := self.push(Null)
+			if err != nil {
+				return err
+			}
+		
+		case code.OpSetLocal:
+			localIndex := code.ReadUint8(ins[ip + 1:])
+			self.currentFrame().ip += 1
+
+			frame := self.currentFrame()
+
+			self.stack[frame.basePointer+int(localIndex)] = self.pop()
+
+		case code.OpGetLocal:
+			localIndex := code.ReadUint8(ins[ip + 1:])
+			self.currentFrame().ip += 1
+
+			frame := self.currentFrame()
+
+			err := self.push(self.stack[frame.basePointer+int(localIndex)])
 			if err != nil {
 				return err
 			}
